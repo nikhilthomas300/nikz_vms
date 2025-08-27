@@ -79,7 +79,9 @@ export function VisitorModal({
         checkOutTime: formData.checkOutTime,
         badgeId: formData.badgeId || `B${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
         createdAt: formData.createdAt || new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        name: "",
+        scheduledTime: ""
       }
 
       onSave(visitorData)

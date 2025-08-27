@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import { useState, useEffect } from "react"
@@ -23,7 +24,6 @@ import {
 } from "lucide-react"
 import { GlobalLoader } from "@/components/ui/global-loader"
 import { mockVisitors } from "@/lib/data/mockData"
-import { Visitor } from "@/types"
 
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },

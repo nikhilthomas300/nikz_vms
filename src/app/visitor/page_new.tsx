@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { motion } from "framer-motion"
 import { MainLayout } from "@/components/layout/main-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,7 +17,6 @@ import {
   Clock,
   MapPin,
   Building,
-  ArrowRight,
   TrendingUp,
   Award
 } from "lucide-react"
@@ -106,7 +104,6 @@ export default function VisitorDashboard() {
       role="visitor" 
       title="Visitor Portal" 
       subtitle="Manage your visits and registration"
-      showSearch={false}
     >
       <div className="p-4 lg:p-6 space-y-6">
         {/* Welcome Section */}

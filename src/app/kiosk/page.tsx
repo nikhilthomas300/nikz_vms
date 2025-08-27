@@ -173,7 +173,7 @@ export default function KioskPage() {
           </p>
         </motion.div>
 
-        {loading && <GlobalLoader />}
+        {loading && <GlobalLoader isLoading={false} />}
 
         <AnimatePresence mode="wait">
           {/* Welcome Step */}

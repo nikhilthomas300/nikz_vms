@@ -1,12 +1,9 @@
 "use client"
 
-import { useState } from "react"
 import { MainLayout } from "@/components/layout/main-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { VisitorModal } from "@/components/ui/visitor-modal"
 import { 
   ChartLine, 
   Users, 
@@ -16,14 +13,7 @@ import {
   Download,
   Settings,
   UserCog,
-  BarChart3,
-  Plus,
-  Eye,
-  Edit,
-  Trash2
-} from "lucide-react"
-import { Visitor } from "@/types"
-import { mockVisitors as initialVisitors, mockHosts, mockSecurityAlerts } from "@/lib/data/mockData"
+  BarChart3} from "lucide-react"
 
 // Mock data for admin dashboard
 const mockAdminStats = {

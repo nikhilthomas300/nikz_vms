@@ -56,12 +56,14 @@ export const mockVisitors: Visitor[] = [
     status: "scheduled",
     badgeId: "B001",
     createdAt: new Date("2024-08-26T10:00:00"),
-    updatedAt: new Date("2024-08-26T10:00:00")
+    updatedAt: new Date("2024-08-26T10:00:00"),
+    name: "",
+    scheduledTime: ""
   },
   {
     id: "v2",
     firstName: "Sarah",
-    lastName: "Wilson", 
+    lastName: "Wilson",
     email: "sarah.wilson@innovatelabs.com",
     phone: "+1-555-0102",
     company: "InnovateLabs",
@@ -79,11 +81,13 @@ export const mockVisitors: Visitor[] = [
     badgeId: "B002",
     checkInTime: new Date("2024-08-27T15:25:00"),
     createdAt: new Date("2024-08-26T11:30:00"),
-    updatedAt: new Date("2024-08-27T15:25:00")
+    updatedAt: new Date("2024-08-27T15:25:00"),
+    name: "",
+    scheduledTime: ""
   },
   {
     id: "v3",
-    firstName: "Mike", 
+    firstName: "Mike",
     lastName: "Davis",
     email: "mike@startupx.com",
     phone: "+1-555-0103",
@@ -92,7 +96,7 @@ export const mockVisitors: Visitor[] = [
     visitDetails: {
       hostName: "Carol White",
       hostEmail: "carol@company.com",
-      department: "Marketing", 
+      department: "Marketing",
       purpose: "Partnership Meeting",
       scheduledTime: new Date("2024-08-27T12:00:00"),
       estimatedDuration: 120,
@@ -102,13 +106,15 @@ export const mockVisitors: Visitor[] = [
     badgeId: "B003",
     checkInTime: new Date("2024-08-27T11:55:00"),
     createdAt: new Date("2024-08-25T14:20:00"),
-    updatedAt: new Date("2024-08-27T11:55:00")
+    updatedAt: new Date("2024-08-27T11:55:00"),
+    name: "",
+    scheduledTime: ""
   },
   {
     id: "v4",
     firstName: "Emma",
     lastName: "Brown",
-    email: "emma@designco.com", 
+    email: "emma@designco.com",
     phone: "+1-555-0104",
     company: "DesignCo",
     visitDetails: {
@@ -125,7 +131,9 @@ export const mockVisitors: Visitor[] = [
     checkInTime: new Date("2024-08-26T09:58:00"),
     checkOutTime: new Date("2024-08-26T11:15:00"),
     createdAt: new Date("2024-08-25T16:45:00"),
-    updatedAt: new Date("2024-08-26T11:15:00")
+    updatedAt: new Date("2024-08-26T11:15:00"),
+    name: "",
+    scheduledTime: ""
   }
 ]
 

@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
+// Removed unused import
 import { Avatar } from "@/components/ui/avatar"
 import { GlobalLoader } from "@/components/ui/global-loader"
 import { 
