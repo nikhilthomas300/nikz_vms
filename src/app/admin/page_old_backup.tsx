@@ -7,17 +7,16 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { StatsLineChart } from "@/components/charts/line-chart"
-import { StatsBarChart } from "@/components/charts/bar-chart"
 import { LocationSelector } from "@/components/ui/location-selector"
 import { MeetingDetailsPopup } from "@/components/forms/meeting-details-popup"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { 
   Users, 
   Building, 
   Download,
   Calendar,
   Clock,
+  MapPin,
   Search,
   Eye,
   Activity,
@@ -25,9 +24,13 @@ import {
   Building2,
   Bell,
   BarChart3,
-  Filter
+  Filter,
+  UserCheck,
+  Phone,
+  Mail,
+  Building as BuildingIcon
 } from "lucide-react"
-import { Location, Meeting } from "@/types"
+import { Location, Meeting, Visitor } from "@/types"
 import { mockLocations, mockMeetings, mockVisitors } from "@/lib/data/mockData"
 
 interface AdminStats {
@@ -114,23 +117,6 @@ export default function ModernAdminCenterPage() {
     systemHealth: 98
   }
 
-  // Analytics data for charts
-  const monthlyTrends = [
-    { month: "Jan", meetings: 32, visitors: 180 },
-    { month: "Feb", meetings: 28, visitors: 165 },
-    { month: "Mar", meetings: 45, visitors: 220 },
-    { month: "Apr", meetings: 38, visitors: 195 },
-    { month: "May", meetings: 52, visitors: 285 },
-    { month: "Jun", meetings: 41, visitors: 234 },
-  ];
-
-  // Visit Status Data for Analytics
-  const visitStatusStats = [
-    { status: "In Progress", visits: activeMeetings.length + 2, color: "#10B981" },
-    { status: "Completed", visits: locationMeetings.filter(m => m.status === 'completed').length + 5, color: "#6366F1" },
-    { status: "Not Started", visits: locationMeetings.filter(m => m.status === 'scheduled').length + 3, color: "#F59E0B" },
-  ];
-
   const formatDateTime = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
       weekday: 'short',
@@ -157,7 +143,7 @@ export default function ModernAdminCenterPage() {
   }
 
   return (
-    <MainLayout role="admin" title="Dashboard" subtitle="Comprehensive system analytics and visitor management overview">
+    <MainLayout role="admin" title="" subtitle="">
       <motion.div
         className="min-h-screen bg-gradient-to-br from-slate-50/80 via-blue-50/40 to-indigo-50/30 p-4 sm:p-6 lg:p-8"
         initial="hidden"
@@ -612,7 +598,7 @@ export default function ModernAdminCenterPage() {
                                 </div>
                                 <div className="col-span-2">
                                   <p className="font-medium text-gray-900">
-                                    {visitor.scheduledTime ? formatDateTime(new Date(visitor.scheduledTime)) : 'N/A'}
+                                    {visitor.scheduledTime ? formatDateTime(visitor.scheduledTime) : 'N/A'}
                                   </p>
                                 </div>
                                 <div className="col-span-2">
@@ -691,57 +677,54 @@ export default function ModernAdminCenterPage() {
                             <BarChart3 className="h-5 w-5 text-blue-500" />
                             Meeting Trends
                           </h4>
-                          <StatsLineChart
-                            data={monthlyTrends}
-                            xKey="month"
-                            series={[
-                              { dataKey: "meetings", color: "#3B82F6", name: "Meetings" },
-                              { dataKey: "visitors", color: "#10B981", name: "Visitors" }
-                            ]}
-                          />
+                          <div className="h-64 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl flex items-center justify-center">
+                            <div className="text-center">
+                              <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                              <p className="text-gray-500">Chart visualization coming soon</p>
+                            </div>
+                          </div>
                         </div>
                         
                         <div className="bg-white/50 rounded-2xl border border-white/50 p-6">
                           <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                             <Activity className="h-5 w-5 text-green-500" />
-                            Visit Status Overview
+                            Visitor Activity
                           </h4>
-                          <StatsBarChart
-                            data={visitStatusStats}
-                            xKey="status"
-                            yKey="visits"
-                            color="#10B981"
-                          />
+                          <div className="h-64 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl flex items-center justify-center">
+                            <div className="text-center">
+                              <Activity className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                              <p className="text-gray-500">Chart visualization coming soon</p>
+                            </div>
+                          </div>
                         </div>
                       </div>
 
-                      {/* Visit Status Statistics */}
+                      {/* Department Statistics */}
                       <div className="bg-white/50 rounded-2xl border border-white/50 p-6">
-                        <h4 className="text-lg font-semibold text-gray-900 mb-4">Visit Status Breakdown</h4>
+                        <h4 className="text-lg font-semibold text-gray-900 mb-4">Department Activity</h4>
                         <div className="space-y-4">
-                          {visitStatusStats.map((status, index) => (
-                            <div key={status.status} className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <div 
-                                  className="w-3 h-3 rounded-full"
-                                  style={{ backgroundColor: status.color }}
-                                ></div>
-                                <span className="font-medium text-gray-900">{status.status}</span>
-                              </div>
-                              <div className="flex items-center gap-4">
-                                <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
-                                  <motion.div
-                                    className="h-full rounded-full"
-                                    style={{ backgroundColor: status.color }}
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${Math.min((status.visits / Math.max(...visitStatusStats.map(s => s.visits))) * 100, 100)}%` }}
-                                    transition={{ duration: 1, delay: index * 0.2 }}
-                                  />
+                          {['Sales', 'Engineering', 'Marketing', 'HR'].map((dept, index) => {
+                            const percentage = [65, 45, 30, 25][index]
+                            return (
+                              <div key={dept} className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-3 h-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-500"></div>
+                                  <span className="font-medium text-gray-900">{dept}</span>
                                 </div>
-                                <span className="text-sm font-medium text-gray-600 w-12">{status.visits}</span>
+                                <div className="flex items-center gap-4">
+                                  <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                    <motion.div
+                                      className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
+                                      initial={{ width: 0 }}
+                                      animate={{ width: `${percentage}%` }}
+                                      transition={{ duration: 1, delay: index * 0.2 }}
+                                    />
+                                  </div>
+                                  <span className="text-sm font-medium text-gray-600 w-12">{percentage}%</span>
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            )
+                          })}
                         </div>
                       </div>
                     </div>

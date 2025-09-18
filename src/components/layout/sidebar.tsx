@@ -24,8 +24,10 @@ import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 
 interface SidebarProps {
-  role: 'host' | 'visitor' | 'security' | 'admin' | 'kiosk'
+  role: 'host' | 'visitor' | 'security' | 'admin' | 'kiosk' | 'employee'
   onClose?: () => void
+  collapsed?: boolean
+  onToggleCollapse?: () => void
 }
 
 const navigationItems = {
@@ -34,6 +36,12 @@ const navigationItems = {
     { href: '/host/visitors', icon: Users, label: 'My Visitors', description: 'Manage visitors' },
     { href: '/host/calendar', icon: Calendar, label: 'Calendar', description: 'View schedule' },
     { href: '/host/notifications', icon: Bell, label: 'Notifications', description: 'View alerts' },
+  ],
+  employee: [
+    { href: '/employee', icon: Calendar, label: 'Dashboard', description: 'Overview' },
+    { href: '/employee/meetings', icon: Users, label: 'My Meetings', description: 'Manage meetings' },
+    { href: '/employee/calendar', icon: Calendar, label: 'Calendar', description: 'View schedule' },
+    { href: '/employee/notifications', icon: Bell, label: 'Notifications', description: 'View alerts' },
   ],
   security: [
     { href: '/security', icon: Shield, label: 'Dashboard', description: 'Monitor visitors' },
@@ -45,6 +53,7 @@ const navigationItems = {
   admin: [
     { href: '/admin', icon: ChartLine, label: 'Dashboard', description: 'Analytics overview' },
     { href: '/admin/visitors', icon: Users, label: 'All Visitors', description: 'Manage all visitors' },
+    { href: '/admin/meetings', icon: Calendar, label: 'All Meetings', description: 'Manage all meetings' },
     { href: '/admin/hosts', icon: UserPlus, label: 'Hosts', description: 'Manage hosts' },
     { href: '/admin/reports', icon: FileText, label: 'Reports', description: 'Detailed reports' },
     { href: '/admin/settings', icon: Settings, label: 'Settings', description: 'System settings' },
@@ -59,9 +68,13 @@ const navigationItems = {
   ]
 }
 
-export function Sidebar({ role, onClose }: SidebarProps) {
+export function Sidebar({ role, onClose, collapsed = false, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname()
   const items = navigationItems[role] || []
+
+  // Consume unused parameters to avoid lint errors
+  void collapsed
+  void onToggleCollapse
 
   const handleSignOut = () => {
     // In a real app, this would clear authentication tokens

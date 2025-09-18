@@ -2,44 +2,53 @@
 
 import { useState } from "react"
 import { MainLayout } from "@/components/layout/main-layout"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { VisitorModal } from "@/components/ui/visitor-modal"
+import { MeetingForm } from "@/components/forms/meeting-form"
+import { MeetingDetailsPopup } from "@/components/forms/meeting-details-popup"
 import { motion } from "framer-motion"
 import { 
   Calendar, 
   Users, 
   Clock, 
   CheckCircle, 
-  AlertCircle,
   Plus,
   Eye,
-  MessageSquare,
   Edit,
-  TrendingUp,
-  UserCheck,
   MapPin,
-  Phone
+  Building2,
+  CalendarPlus,
+  User,
+  X
 } from "lucide-react"
-import { Visitor } from "@/types"
-import { mockVisitors as initialVisitors } from "@/lib/data/mockData"
+import { Meeting } from "@/types"
+import { mockMeetings, mockEmployees } from "@/lib/data/mockData"
 
-const getStatusBadge = (status: Visitor['status']) => {
+const getMeetingStatusBadge = (status: Meeting['status']) => {
   switch (status) {
     case "scheduled":
       return <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50/50">Scheduled</Badge>
-    case "pre-registered":
-      return <Badge variant="outline" className="text-yellow-600 border-yellow-200 bg-yellow-50/50">Pre-registered</Badge>
-    case "checked-in":
-      return <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50/50">Checked In</Badge>
-    case "in-meeting":
-      return <Badge variant="outline" className="text-purple-600 border-purple-200 bg-purple-50/50">In Meeting</Badge>
-    case "checked-out":
-      return <Badge variant="outline" className="text-gray-600 border-gray-200 bg-gray-50/50">Checked Out</Badge>
-    case "overdue":
-      return <Badge variant="outline" className="text-red-600 border-red-200 bg-red-50/50">Overdue</Badge>
+    case "in-progress":
+      return <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50/50">In Progress</Badge>
+    case "completed":
+      return <Badge variant="outline" className="text-gray-600 border-gray-200 bg-gray-50/50">Completed</Badge>
+    case "cancelled":
+      return <Badge variant="outline" className="text-red-600 border-red-200 bg-red-50/50">Cancelled</Badge>
+    default:
+      return <Badge variant="outline">Unknown</Badge>
+  }
+}
+
+const getApprovalBadge = (status: Meeting['approvalStatus']) => {
+  switch (status) {
+    case "pending":
+      return <Badge variant="outline" className="text-yellow-600 border-yellow-200 bg-yellow-50/50">Pending Approval</Badge>
+    case "approved":
+      return <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50/50">Approved</Badge>
+    case "rejected":
+      return <Badge variant="outline" className="text-red-600 border-red-200 bg-red-50/50">Rejected</Badge>
     default:
       return <Badge variant="outline">Unknown</Badge>
   }
@@ -50,420 +59,468 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
+      duration: 0.6,
       staggerChildren: 0.1
     }
   }
 }
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { y: 20, opacity: 0 },
   visible: {
-    opacity: 1,
     y: 0,
-    transition: { duration: 0.4 }
+    opacity: 1,
+    transition: { duration: 0.5 }
   }
 }
 
 export default function HostDashboard() {
-  const [visitors, setVisitors] = useState<Visitor[]>(initialVisitors.slice(0, 8))
-  const [activeTab, setActiveTab] = useState("today")
+  const [meetings, setMeetings] = useState<Meeting[]>(mockMeetings)
+  const [showCreateMeeting, setShowCreateMeeting] = useState(false)
+  const [showMeetingDetails, setShowMeetingDetails] = useState(false)
+  const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null)
+  const [detailsMode, setDetailsMode] = useState<'view' | 'edit'>('view')
 
-  const handleSaveVisitor = (visitor: Visitor) => {
-    if (visitors.find(v => v.id === visitor.id)) {
-      setVisitors(prev => prev.map(v => v.id === visitor.id ? visitor : v))
-    } else {
-      setVisitors(prev => [...prev, visitor])
+  // Current employee (in real app, this would come from auth)
+  const currentEmployee = mockEmployees[0]
+
+  const handleCreateMeeting = (meetingData: Partial<Meeting>) => {
+    const newMeeting: Meeting = {
+      id: `m${Date.now()}`,
+      subject: meetingData.subject!,
+      description: meetingData.description || "",
+      type: meetingData.type!,
+      country: meetingData.country!,
+      location: meetingData.location!,
+      tower: meetingData.tower!,
+      room: meetingData.room!,
+      startTime: meetingData.startTime!,
+      endTime: meetingData.endTime!,
+      status: "scheduled" as Meeting['status'],
+      approvalStatus: "pending" as Meeting['approvalStatus'],
+      employeeId: currentEmployee.id,
+      employee: currentEmployee,
+      visitors: [],
+      createdAt: new Date(),
+      updatedAt: new Date()
     }
+
+    setMeetings(prev => [...prev, newMeeting])
+    setShowCreateMeeting(false)
   }
 
-  const handleDeleteVisitor = (visitorId: string) => {
-    setVisitors(prev => prev.filter(v => v.id !== visitorId))
+  const handleViewMeeting = (meeting: Meeting) => {
+    setSelectedMeeting(meeting)
+    setDetailsMode('view')
+    setShowMeetingDetails(true)
   }
 
-  // Filter visitors based on active tab
-  const filteredVisitors = visitors.filter(visitor => {
-    const today = new Date().toDateString()
-    const visitorDate = new Date(visitor.visitDetails.scheduledTime).toDateString()
-    
-    switch (activeTab) {
-      case "today":
-        return visitorDate === today
-      case "upcoming":
-        return new Date(visitor.visitDetails.scheduledTime) > new Date() && visitorDate !== today
-      case "history":
-        return visitor.status === "checked-out" || new Date(visitor.visitDetails.scheduledTime) < new Date()
-      default:
-        return true
-    }
+  const handleEditMeeting = (meeting: Meeting) => {
+    setSelectedMeeting(meeting)
+    setDetailsMode('edit')
+    setShowMeetingDetails(true)
+  }
+
+  const todaysMeetings = meetings.filter(meeting => {
+    const today = new Date()
+    const meetingDate = new Date(meeting.startTime)
+    return meetingDate.toDateString() === today.toDateString()
   })
 
-  // Calculate stats
-  const todayVisitors = visitors.filter(v => 
-    new Date(v.visitDetails.scheduledTime).toDateString() === new Date().toDateString()
-  )
-  const checkedInToday = todayVisitors.filter(v => v.status === "checked-in" || v.status === "in-meeting")
-  const upcomingToday = todayVisitors.filter(v => v.status === "scheduled" || v.status === "pre-registered")
-  const overdueVisitors = visitors.filter(v => v.status === "overdue")
+  const upcomingMeetings = meetings.filter(meeting => {
+    const now = new Date()
+    return new Date(meeting.startTime) > now && meeting.status === 'scheduled'
+  })
+
+  const completedMeetings = meetings.filter(meeting => meeting.status === 'completed')
+  const totalVisitors = meetings.reduce((sum, meeting) => sum + (meeting.visitors?.length || 0), 0)
 
   return (
-    <MainLayout 
-      role="host"
-      title="Host Dashboard"
-      subtitle="Manage your visitor appointments and meetings"
-      showClock={true}
-    >
-      <motion.div 
-        className="space-y-6 p-4 sm:p-6 lg:p-8 min-h-screen bg-gradient-to-br from-slate-50/50 to-blue-50/30 dark:from-slate-900/50 dark:to-blue-950/30"
-        variants={containerVariants}
+    <MainLayout role="host" title="Employee Portal">
+      <motion.div
+        className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6"
         initial="hidden"
         animate="visible"
+        variants={containerVariants}
       >
-        {/* Quick Stats */}
-        <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/50 dark:to-blue-900/50 border-blue-200/50 hover:shadow-lg transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                Today&apos;s Visitors
-              </CardTitle>
-              <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-blue-900 dark:text-blue-100">
-                {todayVisitors.length}
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <motion.div 
+            className="mb-8"
+            variants={itemVariants}
+          >
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">My Meetings</h1>
+                <p className="text-gray-600 mt-1">Create and manage your meetings with visitors</p>
               </div>
-              <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
-                Appointments scheduled
-              </p>
-            </CardContent>
-          </Card>
+              <Button
+                onClick={() => setShowCreateMeeting(true)}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                <Plus className="h-5 w-5 mr-2" />
+                Create Meeting
+              </Button>
+            </div>
+          </motion.div>
 
-          <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/50 dark:to-green-900/50 border-green-200/50 hover:shadow-lg transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-sm font-medium text-green-700 dark:text-green-300">
-                Active Visitors
-              </CardTitle>
-              <UserCheck className="h-5 w-5 text-green-600 dark:text-green-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-green-900 dark:text-green-100">
-                {checkedInToday.length}
-              </div>
-              <p className="text-xs text-green-600 dark:text-green-300 mt-1">
-                Currently on-site
-              </p>
-            </CardContent>
-          </Card>
+          {/* Stats Cards */}
+          <motion.div 
+            className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
+            variants={itemVariants}
+          >
+            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Today&apos;s Meetings</p>
+                    <p className="text-2xl font-bold text-gray-900">{todaysMeetings.length}</p>
+                  </div>
+                  <Calendar className="h-8 w-8 text-blue-500" />
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/50 dark:to-purple-900/50 border-purple-200/50 hover:shadow-lg transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-sm font-medium text-purple-700 dark:text-purple-300">
-                Upcoming Today
-              </CardTitle>
-              <Clock className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-purple-900 dark:text-purple-100">
-                {upcomingToday.length}
-              </div>
-              <p className="text-xs text-purple-600 dark:text-purple-300 mt-1">
-                Awaiting arrival
-              </p>
-            </CardContent>
-          </Card>
+            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Upcoming</p>
+                    <p className="text-2xl font-bold text-gray-900">{upcomingMeetings.length}</p>
+                  </div>
+                  <Clock className="h-8 w-8 text-orange-500" />
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/50 dark:to-red-900/50 border-red-200/50 hover:shadow-lg transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-sm font-medium text-red-700 dark:text-red-300">
-                Overdue
-              </CardTitle>
-              <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-red-900 dark:text-red-100">
-                {overdueVisitors.length}
-              </div>
-              <p className="text-xs text-red-600 dark:text-red-300 mt-1">
-                Require attention
-              </p>
-            </CardContent>
-          </Card>
-        </motion.div>
+            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Completed</p>
+                    <p className="text-2xl font-bold text-gray-900">{completedMeetings.length}</p>
+                  </div>
+                  <CheckCircle className="h-8 w-8 text-green-500" />
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Quick Actions */}
-        <motion.div variants={itemVariants}>
-          <Card className="bg-gradient-to-r from-white/90 to-slate-50/90 dark:from-slate-800/90 dark:to-gray-800/90 backdrop-blur-sm shadow-lg">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-xl font-semibold flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-blue-600" />
-                Quick Actions
-              </CardTitle>
-              <CardDescription>Common tasks to manage your visitors efficiently</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                <VisitorModal 
-                  mode="create" 
-                  onSave={handleSaveVisitor}
-                  trigger={
-                    <Button className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg transition-all duration-300">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Schedule Visit
-                    </Button>
-                  }
-                />
-                <Button variant="outline" className="w-full h-12 border-2 hover:bg-slate-50 dark:hover:bg-slate-800 hover:shadow-md transition-all duration-300">
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Send Invitation
-                </Button>
-                <Button variant="outline" className="w-full h-12 border-2 hover:bg-slate-50 dark:hover:bg-slate-800 hover:shadow-md transition-all duration-300">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  View Calendar
-                </Button>
-                <Button variant="outline" className="w-full h-12 border-2 hover:bg-slate-50 dark:hover:bg-slate-800 hover:shadow-md transition-all duration-300">
-                  <Eye className="h-4 w-4 mr-2" />
-                  Reports
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Total Visitors</p>
+                    <p className="text-2xl font-bold text-gray-900">{totalVisitors}</p>
+                  </div>
+                  <Users className="h-8 w-8 text-purple-500" />
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-        {/* Visitor Management */}
-        <motion.div variants={itemVariants}>
-          <Card className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm shadow-xl">
-            <CardHeader>
-              <CardTitle className="text-xl font-semibold">Visitor Management</CardTitle>
-              <CardDescription>View and manage your scheduled visitors</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-3 mb-6 bg-slate-100 dark:bg-slate-700">
-                  <TabsTrigger value="today" className="flex items-center gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-600">
-                    <Calendar className="h-4 w-4" />
-                    Today ({todayVisitors.length})
-                  </TabsTrigger>
-                  <TabsTrigger value="upcoming" className="flex items-center gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-600">
-                    <Clock className="h-4 w-4" />
-                    Upcoming ({visitors.filter(v => new Date(v.visitDetails.scheduledTime) > new Date()).length})
-                  </TabsTrigger>
-                  <TabsTrigger value="history" className="flex items-center gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-600">
-                    <CheckCircle className="h-4 w-4" />
-                    History
-                  </TabsTrigger>
-                </TabsList>
+          {/* Main Content */}
+          <motion.div variants={itemVariants}>
+            <Tabs defaultValue="all" className="w-full">
+              <TabsList className="grid w-full grid-cols-4 lg:w-[400px] bg-white/80 backdrop-blur-sm">
+                <TabsTrigger value="all">All Meetings</TabsTrigger>
+                <TabsTrigger value="today">Today</TabsTrigger>
+                <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+                <TabsTrigger value="completed">Completed</TabsTrigger>
+              </TabsList>
 
-                <TabsContent value="today" className="space-y-4">
-                  {filteredVisitors.length > 0 ? (
-                    <div className="space-y-3">
-                      {filteredVisitors.map((visitor, index) => (
-                        <motion.div
-                          key={visitor.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                          className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-gradient-to-r from-white to-gray-50/50 dark:from-slate-800 dark:to-slate-700/50 rounded-xl border shadow-sm hover:shadow-md transition-all duration-300 gap-4"
-                        >
-                          <div className="flex items-center space-x-4 min-w-0 flex-1">
-                            <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-800 dark:to-blue-700 rounded-full flex items-center justify-center shrink-0">
-                              <Users className="h-6 w-6 text-blue-600 dark:text-blue-300" />
-                            </div>
-                            <div className="space-y-1 min-w-0 flex-1">
-                              <p className="font-semibold text-lg truncate">{visitor.firstName} {visitor.lastName}</p>
-                              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-muted-foreground">
-                                <span className="flex items-center gap-1">
-                                  <MapPin className="h-3 w-3 shrink-0" />
-                                  <span className="truncate">{visitor.company}</span>
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <Phone className="h-3 w-3 shrink-0" />
-                                  <span className="truncate">{visitor.phone}</span>
-                                </span>
-                              </div>
-                              <p className="text-sm font-medium text-blue-600 truncate">{visitor.visitDetails.purpose}</p>
-                            </div>
-                          </div>
-                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 shrink-0">
-                            <div className="text-left sm:text-right space-y-1">
-                              <p className="text-sm font-medium">
-                                {new Date(visitor.visitDetails.scheduledTime).toLocaleTimeString([], { 
-                                  hour: '2-digit', 
-                                  minute: '2-digit' 
-                                })}
-                              </p>
-                              {getStatusBadge(visitor.status)}
-                            </div>
-                            <div className="flex space-x-2">
-                              <VisitorModal 
-                                mode="view" 
-                                visitor={visitor}
-                                trigger={
-                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-blue-100 dark:hover:bg-blue-900">
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                }
-                              />
-                              <VisitorModal 
-                                mode="edit" 
-                                visitor={visitor}
-                                onSave={handleSaveVisitor}
-                                onDelete={handleDeleteVisitor}
-                                trigger={
-                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-blue-100 dark:hover:bg-blue-900">
-                                    <Edit className="h-4 w-4" />
-                                  </Button>
-                                }
-                              />
-                            </div>
-                          </div>
-                        </motion.div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-16 bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700 rounded-xl">
-                      <Calendar className="h-20 w-20 mx-auto mb-4 text-muted-foreground" />
-                      <h3 className="text-xl font-semibold mb-2">No visits scheduled for today</h3>
-                      <p className="text-muted-foreground mb-6">Schedule your first visitor appointment</p>
-                      <VisitorModal 
-                        mode="create" 
-                        onSave={handleSaveVisitor}
-                        trigger={<Button size="lg">Schedule a Visit</Button>}
+              <TabsContent value="all" className="space-y-4 mt-6">
+                {meetings.length > 0 ? (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {meetings.map((meeting, index) => (
+                      <MeetingCard
+                        key={meeting.id}
+                        meeting={meeting}
+                        onView={() => handleViewMeeting(meeting)}
+                        onEdit={() => handleEditMeeting(meeting)}
+                        index={index}
                       />
-                    </div>
-                  )}
-                </TabsContent>
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState onCreateMeeting={() => setShowCreateMeeting(true)} />
+                )}
+              </TabsContent>
 
-                <TabsContent value="upcoming" className="space-y-4">
-                  {filteredVisitors.length > 0 ? (
-                    <div className="space-y-3">
-                      {filteredVisitors.map((visitor, index) => (
-                        <motion.div
-                          key={visitor.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                          className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-gradient-to-r from-white to-gray-50/50 dark:from-slate-800 dark:to-slate-700/50 rounded-xl border shadow-sm hover:shadow-md transition-all duration-300 gap-4"
-                        >
-                          <div className="flex items-center space-x-4 min-w-0 flex-1">
-                            <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-800 dark:to-purple-700 rounded-full flex items-center justify-center shrink-0">
-                              <Clock className="h-6 w-6 text-purple-600 dark:text-purple-300" />
-                            </div>
-                            <div className="space-y-1 min-w-0 flex-1">
-                              <p className="font-semibold text-lg truncate">{visitor.firstName} {visitor.lastName}</p>
-                              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-muted-foreground">
-                                <span className="truncate">{visitor.company}</span>
-                                <span className="truncate">{visitor.phone}</span>
-                              </div>
-                              <p className="text-sm font-medium text-purple-600 truncate">{visitor.visitDetails.purpose}</p>
-                            </div>
-                          </div>
-                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 shrink-0">
-                            <div className="text-left sm:text-right space-y-1">
-                              <p className="text-sm font-medium">
-                                {new Date(visitor.visitDetails.scheduledTime).toLocaleDateString()} at{' '}
-                                {new Date(visitor.visitDetails.scheduledTime).toLocaleTimeString([], { 
-                                  hour: '2-digit', 
-                                  minute: '2-digit' 
-                                })}
-                              </p>
-                              {getStatusBadge(visitor.status)}
-                            </div>
-                            <div className="flex space-x-2">
-                              <VisitorModal 
-                                mode="view" 
-                                visitor={visitor}
-                                trigger={
-                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-purple-100 dark:hover:bg-purple-900">
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                }
-                              />
-                              <VisitorModal 
-                                mode="edit" 
-                                visitor={visitor}
-                                onSave={handleSaveVisitor}
-                                onDelete={handleDeleteVisitor}
-                                trigger={
-                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-purple-100 dark:hover:bg-purple-900">
-                                    <Edit className="h-4 w-4" />
-                                  </Button>
-                                }
-                              />
-                            </div>
-                          </div>
-                        </motion.div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-16 bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700 rounded-xl">
-                      <Clock className="h-20 w-20 mx-auto mb-4 text-muted-foreground" />
-                      <h3 className="text-xl font-semibold mb-2">No upcoming visits</h3>
-                      <p className="text-muted-foreground mb-6">Schedule future appointments with visitors</p>
-                      <VisitorModal 
-                        mode="create" 
-                        onSave={handleSaveVisitor}
-                        trigger={<Button size="lg">Schedule a Visit</Button>}
+              <TabsContent value="today" className="space-y-4 mt-6">
+                {todaysMeetings.length > 0 ? (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {todaysMeetings.map((meeting, index) => (
+                      <MeetingCard
+                        key={meeting.id}
+                        meeting={meeting}
+                        onView={() => handleViewMeeting(meeting)}
+                        onEdit={() => handleEditMeeting(meeting)}
+                        index={index}
                       />
-                    </div>
-                  )}
-                </TabsContent>
+                    ))}
+                  </div>
+                ) : (
+                  <Card>
+                    <CardContent className="p-12 text-center">
+                      <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No meetings today</h3>
+                      <p className="text-gray-500">You don&apos;t have any meetings scheduled for today</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
 
-                <TabsContent value="history" className="space-y-4">
-                  {filteredVisitors.length > 0 ? (
-                    <div className="space-y-3">
-                      {filteredVisitors.map((visitor, index) => (
-                        <motion.div
-                          key={visitor.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                          className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-gradient-to-r from-white to-gray-50/50 dark:from-slate-800 dark:to-slate-700/50 rounded-xl border shadow-sm gap-4"
-                        >
-                          <div className="flex items-center space-x-4 min-w-0 flex-1">
-                            <div className="w-12 h-12 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-full flex items-center justify-center shrink-0">
-                              <CheckCircle className="h-6 w-6 text-gray-600 dark:text-gray-300" />
-                            </div>
-                            <div className="space-y-1 min-w-0 flex-1">
-                              <p className="font-semibold text-lg truncate">{visitor.firstName} {visitor.lastName}</p>
-                              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-muted-foreground">
-                                <span className="truncate">{visitor.company}</span>
-                                <span className="truncate">{visitor.phone}</span>
-                              </div>
-                              <p className="text-sm font-medium text-gray-600 truncate">{visitor.visitDetails.purpose}</p>
-                            </div>
-                          </div>
-                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 shrink-0">
-                            <div className="text-left sm:text-right space-y-1">
-                              <p className="text-sm font-medium">
-                                {new Date(visitor.visitDetails.scheduledTime).toLocaleDateString()}
-                              </p>
-                              {getStatusBadge(visitor.status)}
-                            </div>
-                            <VisitorModal 
-                              mode="view" 
-                              visitor={visitor}
-                              trigger={
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                              }
-                            />
-                          </div>
-                        </motion.div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-16 bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700 rounded-xl">
-                      <CheckCircle className="h-20 w-20 mx-auto mb-4 text-muted-foreground" />
-                      <h3 className="text-xl font-semibold mb-2">No visit history</h3>
-                      <p className="text-muted-foreground">Past visits will appear here after completion</p>
-                    </div>
-                  )}
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-        </motion.div>
+              <TabsContent value="upcoming" className="space-y-4 mt-6">
+                {upcomingMeetings.length > 0 ? (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {upcomingMeetings.map((meeting, index) => (
+                      <MeetingCard
+                        key={meeting.id}
+                        meeting={meeting}
+                        onView={() => handleViewMeeting(meeting)}
+                        onEdit={() => handleEditMeeting(meeting)}
+                        index={index}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <Card>
+                    <CardContent className="p-12 text-center">
+                      <Clock className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No upcoming meetings</h3>
+                      <p className="text-gray-500">All caught up! No upcoming meetings scheduled</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+
+              <TabsContent value="completed" className="space-y-4 mt-6">
+                {completedMeetings.length > 0 ? (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {completedMeetings.map((meeting, index) => (
+                      <MeetingCard
+                        key={meeting.id}
+                        meeting={meeting}
+                        onView={() => handleViewMeeting(meeting)}
+                        onEdit={() => handleEditMeeting(meeting)}
+                        index={index}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <Card>
+                    <CardContent className="p-12 text-center">
+                      <CheckCircle className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No completed meetings</h3>
+                      <p className="text-gray-500">Your completed meetings will appear here</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+            </Tabs>
+          </motion.div>
+        </div>
+
+        {/* Meeting Form Modal */}
+        {showCreateMeeting && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Create New Meeting</h2>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowCreateMeeting(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <MeetingForm 
+                onSave={handleCreateMeeting}
+                onCancel={() => setShowCreateMeeting(false)}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Meeting Details Modal */}
+        {showMeetingDetails && selectedMeeting && (
+          <MeetingDetailsPopup
+            meeting={selectedMeeting}
+            isOpen={showMeetingDetails}
+            onClose={() => {
+              setShowMeetingDetails(false)
+              setSelectedMeeting(null)
+            }}
+            onEdit={(updatedMeeting) => {
+              setMeetings(prev => prev.map(m => 
+                m.id === updatedMeeting.id ? updatedMeeting : m
+              ))
+            }}
+            onAddVisitor={() => {}}
+            mode={detailsMode}
+          />
+        )}
       </motion.div>
     </MainLayout>
+  )
+}
+
+interface MeetingCardProps {
+  meeting: Meeting
+  onView: () => void
+  onEdit: () => void
+  index: number
+}
+
+function MeetingCard({ meeting, onView, onEdit, index }: MeetingCardProps) {
+  const cardVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: { 
+        duration: 0.5,
+        delay: index * 0.1
+      }
+    }
+  }
+
+  const formatDateTime = (date: Date) => {
+    return new Intl.DateTimeFormat('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date)
+  }
+
+  return (
+    <motion.div
+      variants={cardVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
+        <CardContent className="p-6">
+          <div className="space-y-4">
+            {/* Header */}
+            <div className="flex items-start justify-between">
+              <div className="space-y-1 flex-1 pr-2">
+                <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                  {meeting.subject}
+                </h3>
+                <p className="text-sm text-gray-600">{meeting.type.name}</p>
+              </div>
+              <div className="flex flex-col gap-1">
+                {getMeetingStatusBadge(meeting.status)}
+                {getApprovalBadge(meeting.approvalStatus)}
+              </div>
+            </div>
+
+            {/* Meeting Details */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Calendar className="h-4 w-4 text-gray-400" />
+                <span>{formatDateTime(meeting.startTime)}</span>
+              </div>
+
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <MapPin className="h-4 w-4 text-gray-400" />
+                <span>{meeting.room.name}, {meeting.tower}</span>
+              </div>
+
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Building2 className="h-4 w-4 text-gray-400" />
+                <span>{meeting.location.name}</span>
+              </div>
+
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Users className="h-4 w-4 text-gray-400" />
+                <span>{meeting.visitors?.length || 0} visitor(s)</span>
+              </div>
+
+              {meeting.visitors && meeting.visitors.length > 0 && (
+                <div className="flex items-center gap-2 text-sm">
+                  <User className="h-4 w-4 text-gray-400" />
+                  <div className="flex -space-x-1">
+                    {meeting.visitors.slice(0, 3).map((visitor, idx) => (
+                      <div
+                        key={idx}
+                        className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-600 rounded-full text-xs font-medium border-2 border-white"
+                        title={visitor.name}
+                      >
+                        {visitor.name.split(' ').map(n => n[0]).join('')}
+                      </div>
+                    ))}
+                    {meeting.visitors.length > 3 && (
+                      <div className="inline-flex items-center justify-center w-6 h-6 bg-gray-100 text-gray-600 rounded-full text-xs font-medium border-2 border-white">
+                        +{meeting.visitors.length - 3}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {meeting.description && (
+              <p className="text-sm text-gray-500 line-clamp-2">
+                {meeting.description}
+              </p>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 pt-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={onView}
+                className="flex-1"
+              >
+                <Eye className="h-4 w-4 mr-1" />
+                View
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={onEdit}
+                className="flex-1"
+              >
+                <Edit className="h-4 w-4 mr-1" />
+                Edit
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  )
+}
+
+function EmptyState({ onCreateMeeting }: { onCreateMeeting: () => void }) {
+  return (
+    <Card>
+      <CardContent className="p-12 text-center">
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <CalendarPlus className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-xl font-medium text-gray-900 mb-2">No meetings yet</h3>
+          <p className="text-gray-500 mb-6 max-w-md mx-auto">
+            Start by creating your first meeting and inviting visitors to join you.
+          </p>
+          <Button 
+            onClick={onCreateMeeting}
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            Create Your First Meeting
+          </Button>
+        </motion.div>
+      </CardContent>
+    </Card>
   )
 }

@@ -164,7 +164,7 @@ export default function VisitorHistoryPage() {
     .reduce((sum, v) => sum + v.duration, 0)
 
   return (
-    <MainLayout role="visitor" title="Visit History">
+    <MainLayout role="visitor" title="Visit History" subtitle="View all your past visits and appointments">
       <GlobalLoader isLoading={loading} text="Loading visit history..." />
       
       <div className="p-4 sm:p-6 lg:p-8">
@@ -174,18 +174,9 @@ export default function VisitorHistoryPage() {
           animate="visible"
           className="max-w-6xl mx-auto"
         >
-          {/* Header */}
+          {/* Export Action */}
           <motion.div variants={itemVariants} className="mb-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
-                  <Clock className="h-8 w-8 text-blue-600" />
-                  Visit History
-                </h1>
-                <p className="text-muted-foreground mt-2">
-                  View all your past visits and appointments
-                </p>
-              </div>
+            <div className="flex items-center justify-end">
               <Button variant="outline" className="flex items-center gap-2">
                 <Download className="h-4 w-4" />
                 Export History

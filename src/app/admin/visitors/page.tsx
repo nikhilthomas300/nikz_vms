@@ -63,7 +63,7 @@ export default function AdminVisitorsPage() {
     const fullName = `${visitor.firstName} ${visitor.lastName}`
     const matchesSearch = fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          visitor.company?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         visitor.visitDetails.hostName.toLowerCase().includes(searchQuery.toLowerCase())
+                         visitor.visitDetails.employeeName.toLowerCase().includes(searchQuery.toLowerCase())
     
     if (statusFilter === "all") return matchesSearch
     return matchesSearch && visitor.status === statusFilter
@@ -93,7 +93,7 @@ export default function AdminVisitorsPage() {
   }
 
   return (
-    <MainLayout role="admin" title="All Visitors">
+    <MainLayout role="admin" title="All Visitors" subtitle="Comprehensive visitor management and oversight">
       <GlobalLoader isLoading={loading} text="Loading visitor data..." />
       
       <div className="p-4 sm:p-6 lg:p-8">
@@ -103,18 +103,9 @@ export default function AdminVisitorsPage() {
           animate="visible"
           className="max-w-7xl mx-auto"
         >
-          {/* Header */}
+          {/* Action Buttons */}
           <motion.div variants={itemVariants} className="mb-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
-                  <Users className="h-8 w-8 text-blue-600" />
-                  All Visitors
-                </h1>
-                <p className="text-muted-foreground mt-2">
-                  Comprehensive visitor management and oversight
-                </p>
-              </div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4">
               <div className="flex gap-2">
                 <Button variant="outline">
                   <Download className="h-4 w-4 mr-2" />
@@ -246,7 +237,7 @@ export default function AdminVisitorsPage() {
                           <td className="p-4">
                             <div className="flex items-center gap-1">
                               <User className="h-3 w-3 text-muted-foreground" />
-                              {visitor.visitDetails.hostName}
+                              {visitor.visitDetails.employeeName}
                             </div>
                             <div className="text-sm text-muted-foreground">
                               {visitor.visitDetails.department}

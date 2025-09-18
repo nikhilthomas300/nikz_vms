@@ -48,13 +48,13 @@ const itemVariants = {
 
 const roleCards = [
   {
-    title: "Host",
+    title: "Employee",
     description:
-      "Manage visitor appointments and coordinate meetings with ease.",
+      "Create meetings and manage visitor appointments with seamless coordination.",
     icon: Users,
-    href: "/host",
+    href: "/employee",
     gradient: "from-blue-500 to-cyan-500",
-    features: ["Schedule Visits", "Guest Management", "Notifications"],
+    features: ["Create Meetings", "Add Visitors", "Meeting Management"],
   },
   {
     title: "Security",
@@ -143,7 +143,7 @@ export default function HomePage() {
               </div>
               <div>
                 <h1 className="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  Visitor Management System
+                  VMTS
                 </h1>
                 <p className="text-xs text-muted-foreground hidden sm:block">
                   Enterprise Solution
@@ -385,10 +385,10 @@ export default function HomePage() {
               <div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                 <Building className="h-4 w-4 text-white" />
               </div>
-              <span className="text-base font-semibold">VMS Enterprise</span>
+              <span className="text-base font-semibold">VMTS Enterprise</span>
             </div>
             <p className="text-slate-400 text-sm">
-              © 2024 Visitor Management System. All rights reserved.
+              © 2024 VMTS. All rights reserved.
             </p>
           </div>
         </div>

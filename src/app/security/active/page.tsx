@@ -63,7 +63,7 @@ export default function SecurityActiveVisitorsPage() {
     const fullName = `${visitor.firstName} ${visitor.lastName}`
     return fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
            visitor.company?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-           visitor.visitDetails.hostName.toLowerCase().includes(searchQuery.toLowerCase())
+           visitor.visitDetails.employeeName.toLowerCase().includes(searchQuery.toLowerCase())
   })
 
   const getTimeInBuilding = (checkInTime?: Date) => {
@@ -78,7 +78,7 @@ export default function SecurityActiveVisitorsPage() {
   }
 
   return (
-    <MainLayout role="security" title="Active Visitors">
+    <MainLayout role="security" title="Active Visitors" subtitle="Monitor all currently checked-in visitors">
       <GlobalLoader isLoading={loading} text="Loading active visitors..." />
       
       <div className="p-4 sm:p-6 lg:p-8">
@@ -88,24 +88,13 @@ export default function SecurityActiveVisitorsPage() {
           animate="visible"
           className="max-w-7xl mx-auto"
         >
-          {/* Header */}
+          {/* Status Badge */}
           <motion.div variants={itemVariants} className="mb-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
-                  <Users className="h-8 w-8 text-green-600" />
-                  Active Visitors
-                </h1>
-                <p className="text-muted-foreground mt-2">
-                  Monitor all currently checked-in visitors
-                </p>
-              </div>
-              <div className="flex items-center gap-4">
-                <Badge variant="outline" className="text-lg px-3 py-1">
-                  <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
-                  {activeVisitors.length} Active
-                </Badge>
-              </div>
+            <div className="flex items-center justify-end">
+              <Badge variant="outline" className="text-lg px-3 py-1">
+                <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+                {activeVisitors.length} Active
+              </Badge>
             </div>
           </motion.div>
 
@@ -163,7 +152,7 @@ export default function SecurityActiveVisitorsPage() {
                       <div className="flex items-center gap-2 text-sm">
                         <User className="h-4 w-4 text-muted-foreground" />
                         <span className="font-medium">Host:</span>
-                        <span>{visitor.visitDetails.hostName}</span>
+                        <span>{visitor.visitDetails.employeeName}</span>
                       </div>
                       <div className="flex items-center gap-2 text-sm">
                         <Building className="h-4 w-4 text-muted-foreground" />

@@ -125,7 +125,7 @@ export default function SecurityCheckinPage() {
   }
 
   return (
-    <MainLayout role="security" title="Visitor Check-in">
+    <MainLayout role="security" title="Visitor Check-in" subtitle="Manage visitor arrivals and departures">
       <GlobalLoader isLoading={loading} text="Loading check-in system..." />
       <GlobalLoader isLoading={checking} text={`Processing ${selectedVisitor ? `${selectedVisitor.firstName} ${selectedVisitor.lastName}` : 'visitor'}...`} />
       
@@ -136,17 +136,6 @@ export default function SecurityCheckinPage() {
           animate="visible"
           className="max-w-6xl mx-auto"
         >
-          {/* Header */}
-          <motion.div variants={itemVariants} className="mb-8">
-            <div className="flex items-center gap-3 mb-4">
-              <UserCheck className="h-8 w-8 text-blue-600" />
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold">Visitor Check-in</h1>
-                <p className="text-muted-foreground">Manage visitor arrivals and departures</p>
-              </div>
-            </div>
-          </motion.div>
-
           {/* Search Section */}
           <motion.div variants={itemVariants} className="mb-8">
             <Card>

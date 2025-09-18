@@ -1,11 +1,11 @@
 <!-- Use this file to provide workspace-specific custom instructions to Copilot. For more details, visit https://code.visualstudio.com/docs/copilot/copilot-customization#_use-a-githubcopilotinstructionsmd-file -->
 - [x] Verify that the copilot-instructions.md file in the .github directory is created.
 
-- [x] Clarify Project Requirements - Building a Visitor Management System with Next.js 15, TypeScript, TailwindCSS, shadcn/ui, Framer Motion
+- [x] Clarify Project Requirements - Building a VMTS with Next.js 15, TypeScript, TailwindCSS, shadcn/ui, Framer Motion
 
 - [x] Scaffold the Project - Next.js project already exists with TypeScript and Tailwind
 
-- [x] Customize the Project - Created comprehensive VMS with role-based dashboards, modern UI components, and enterprise features
+- [x] Customize the Project - Created comprehensive VMTS with role-based dashboards, modern UI components, and enterprise features
 
 - [x] Install Required Extensions - No additional VS Code extensions required
 

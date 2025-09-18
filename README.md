@@ -1,6 +1,6 @@
-# VMS Pro - Enterprise Visitor Management System
+# VMTS Pro - Enterprise VMTS
 
-A comprehensive, enterprise-grade Visitor Management System built with Next.js 15, featuring role-based dashboards, real-time monitoring, and modern UI/UX design.
+A comprehensive, enterprise-grade VMTS built with Next.js 15, featuring role-based dashboards, real-time monitoring, and modern UI/UX design.
 
 ## 🌟 Features
 
@@ -59,7 +59,7 @@ A comprehensive, enterprise-grade Visitor Management System built with Next.js 1
 
 1. **Clone and navigate to the project:**
    ```bash
-   cd nikhil_vms
+   cd nikhil_VMTS
    ```
 
 2. **Install dependencies:**

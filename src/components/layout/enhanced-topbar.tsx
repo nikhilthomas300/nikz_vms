@@ -20,9 +20,9 @@ interface EnhancedTopbarProps {
   title: string
   subtitle?: string
   onMenuClick?: () => void
-  currentRole?: 'host' | 'visitor' | 'security' | 'admin' | 'kiosk'
-  userRoles?: Array<'host' | 'visitor' | 'security' | 'admin'>
-  onRoleSwitch?: (role: 'host' | 'visitor' | 'security' | 'admin') => void
+  currentRole?: 'host' | 'visitor' | 'security' | 'admin' | 'kiosk' | 'employee'
+  userRoles?: Array<'host' | 'visitor' | 'security' | 'admin' | 'employee'>
+  onRoleSwitch?: (role: 'host' | 'visitor' | 'security' | 'admin' | 'employee') => void
   showClock?: boolean
 }
 
@@ -50,6 +50,12 @@ const roleConfig = {
     label: "Admin Center", 
     color: "text-purple-600", 
     bgColor: "bg-purple-50 dark:bg-purple-950" 
+  },
+  employee: { 
+    icon: Users, 
+    label: "Employee Portal", 
+    color: "text-indigo-600", 
+    bgColor: "bg-indigo-50 dark:bg-indigo-950" 
   },
   kiosk: { 
     icon: Users, 
@@ -191,10 +197,12 @@ export function EnhancedTopbar({
           )}
 
           {/* Notifications */}
-          <NotificationCenter />
+          <div className="flex items-center gap-2">
+            <NotificationCenter />
 
-          {/* User Profile */}
-          <UserProfileMenu />
+            {/* User Profile */}
+            <UserProfileMenu />
+          </div>
         </div>
       </div>
     </Card>

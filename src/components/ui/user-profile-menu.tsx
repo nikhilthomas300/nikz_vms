@@ -88,17 +88,13 @@ export function UserProfileMenu() {
       {/* User Profile Trigger */}
       <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>
         <DialogTrigger asChild>
-          <Button variant="ghost" size="sm" className="flex items-center space-x-2 px-2">
+          <Button variant="ghost" size="sm" className="flex items-center gap-2 px-2 py-1.5 h-auto rounded-full hover:bg-accent/60">
             <div className="relative">
               <Avatar className="h-8 w-8">
                 <AvatarImage src={user.avatarUrl} alt={user.name} />
-                <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                <AvatarFallback className="text-xs font-medium">{getInitials(user.name)}</AvatarFallback>
               </Avatar>
               <div className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background ${getStatusColor(user.status)}`} />
-            </div>
-            <div className="hidden md:block text-left">
-              <p className="text-sm font-medium">{user.name}</p>
-              <p className="text-xs text-muted-foreground">{user.title}</p>
             </div>
           </Button>
         </DialogTrigger>
